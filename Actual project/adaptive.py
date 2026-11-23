@@ -502,21 +502,119 @@ def save_testid(test_id,test_title,test_description):
             (test_id,test_title,test_description),
         )
         add_questions(test_id)
+import tkinter as tk
+from tkinter import messagebox
+import mysql.connector as mys
+
+
 def add_questions(test_id):
-    y=yes
-    while y=="yes":
-        q = input("Enter a question : ")
-        a = input("Enter option A: ")
-        b= input("Enter option B: ")
-        c= input("Enter option C: ")
-        d = input("Enter option D: ")
-        correct= input("Enter correct option: ")
-        difficulty=input("Enter difficulty[easy,medium,hard]")
-        cur.execute(
-            """INSERT INTO questions (test_id,question_text,option_a,option_b,option_c,option_d,correct_option,difficulty) VALUES (%s, %s, %s)       
-            """,
-            (test_id,q,a,b,c,d,correct,difficulty),
-        )
+    root = tk.Tk()
+    root.title(f"Add Questions - Test {test_id}")
+    root.geometry("400x300")
+
+    form_frame = tk.Frame(root)
+    form_frame.pack(pady=5)
+
+    tk.Label(form_frame, text="Question:").grid(row=0, column=0, sticky="e", pady=2)
+    q_entry = tk.Entry(form_frame, width=30)
+    q_entry.grid(row=0, column=1, pady=2)
+
+    tk.Label(form_frame, text="Option A:").grid(row=1, column=0, sticky="e", pady=2)
+    a_entry = tk.Entry(form_frame, width=30)
+    a_entry.grid(row=1, column=1, pady=2)
+
+    tk.Label(form_frame, text="Option B:").grid(row=2, column=0, sticky="e", pady=2)
+    b_entry = tk.Entry(form_frame, width=30)
+    b_entry.grid(row=2, column=1, pady=2)
+
+    tk.Label(form_frame, text="Option C:").grid(row=3, column=0, sticky="e", pady=2)
+    c_entry = tk.Entry(form_frame, width=30)
+    c_entry.grid(row=3, column=1, pady=2)
+
+    tk.Label(form_frame, text="Option D:").grid(row=4, column=0, sticky="e", pady=2)
+    d_entry = tk.Entry(form_frame, width=30)
+    d_entry.grid(row=4, column=1, pady=2)
+
+    tk.Label(form_frame, text="Correct:").grid(row=5, column=0, sticky="e", pady=2)
+    correct_var = tk.StringVar(value="A")
+    correct_menu = tk.OptionMenu(form_frame, correct_var, "A", "B", "C", "D")
+    correct_menu.grid(row=5, column=1, sticky="w", pady=2)
+
+    tk.Label(form_frame, text="Difficulty:").grid(row=6, column=0, sticky="e", pady=2)
+    diff_var = tk.StringVar(value="EASY")
+    diff_menu = tk.OptionMenu(form_frame, diff_var, "EASY", "MEDIUM", "HARD")
+    diff_menu.grid(row=6, column=1, sticky="w", pady=2)
+
+    def save_question():
+        q = q_entry.get().strip()
+        a = a_entry.get().strip()
+        b = b_entry.get().strip()
+        c = c_entry.get().strip()
+        d = d_entry.get().strip()
+        correct = correct_var.get().strip().upper()
+        difficulty = diff_var.get().strip().upper()
+
+        if not q or not a or not b or not c or not d:
+            messagebox.showwarning("Missing Data", "Please fill out all fields.")
+            return
+
+        con = None
+        cur = None
+        try:
+            con = mys.connect(
+                host="localhost",
+                user="root",
+                passwd="password",
+                autocommit=True,
+                database="project1",
+            )
+            cur = con.cursor()
+            cur.execute(
+                """
+                INSERT INTO questions (
+                    test_id, QUESTION_TEXT, OPTION_A, OPTION_B, OPTION_C, OPTION_D, CORRECT_OPTION, DIFFICULTY
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (test_id, q, a, b, c, d, correct, difficulty),
+            )
+            messagebox.showinfo("Success", "Question added successfully!")
+
+            q_entry.delete(0, tk.END)
+            a_entry.delete(0, tk.END)
+            b_entry.delete(0, tk.END)
+            c_entry.delete(0, tk.END)
+            d_entry.delete(0, tk.END)
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Failed to add question: {e}")
+        finally:
+            if cur:
+                cur.close()
+            if con and con.is_connected():
+                con.close()
+
+    btn_frame = tk.Frame(root)
+    btn_frame.pack(pady=8)
+
+    tk.Button(
+        btn_frame,
+        text="Save Question",
+        command=save_question,
+        bg="#4CAF50",
+        fg="white",
+        width=14,
+    ).grid(row=0, column=0, padx=5)
+
+    tk.Button(
+        btn_frame,
+        text="Done",
+        command=lambda: [root.destroy(), teacher_home()],
+        bg="#4CAF50",
+        fg="white",
+        width=10,
+    ).grid(row=0, column=1, padx=5)
+
+    root.mainloop()
         
     
 ##        if not rows:
