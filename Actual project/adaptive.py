@@ -2,41 +2,13 @@ import tkinter as tk
 from tkinter import messagebox
 import mysql.connector as mys
 
-# Placeholder functions so the code doesn't crash when called
-def teacher_home(username, password, role):
-    root=tk.Tk()
-    root.title("Wlecome to teeacher homepage")
-    root.geometry("400x300")
-    
-    # Using lambda to destroy the current window before opening the next
-    login_button = tk.Button(root, text="create new test", command=lambda: [root.destroy(), create_new_test()], bg="#4CAF50", fg="white", width=15)
-    login_button.pack(pady=15)
-    
-    signup_button = tk.Button(root, text="Veiw student performance", command=lambda: [root.destroy(), review_stdent()], bg="#4CAF50", fg="white", width=15)
-    signup_button.pack(pady=15)
-    
-    root.mainloop()
-
-def student_home(username, password, role):
-    root=tk.Tk()
-    root.title("Wlecome to student homepage")
-    root.geometry("400x300")
-    
-    # Using lambda to destroy the current window before opening the next
-    login_button = tk.Button(root, text="Take A test", command=lambda: [root.destroy(), Take_a_test(username)], bg="#4CAF50", fg="white", width=15)
-    login_button.pack(pady=15)
-    
-    #signup_button = tk.Button(root, text="Veiw previous performance performance", command=lambda: [root.destroy(), review_stdent()], bg="#4CAF50", fg="white", width=15)
-    #signup_button.pack(pady=15)
-    
-    root.mainloop()
+# --- NAVIGATION & HOME PAGES ---
 
 def firstpage():
     root = tk.Tk()
     root.title("Main Menu")
     root.geometry("400x300")
     
-    # Using lambda to destroy the current window before opening the next
     login_button = tk.Button(root, text="Login", command=lambda: [root.destroy(), login()], bg="#4CAF50", fg="white", width=15)
     login_button.pack(pady=15)
     
@@ -44,6 +16,37 @@ def firstpage():
     signup_button.pack(pady=15)
     
     root.mainloop()
+
+def teacher_home(username=None, password=None, role=None):
+    root = tk.Tk()
+    root.title("Welcome to Teacher Homepage")
+    root.geometry("400x300")
+    
+    create_button = tk.Button(root, text="Create New Test", command=lambda: [root.destroy(), create_new_test()], bg="#4CAF50", fg="white", width=22)
+    create_button.pack(pady=15)
+    
+    view_button = tk.Button(root, text="View Student Performance", command=lambda: [root.destroy(), review_student()], bg="#4CAF50", fg="white", width=22)
+    view_button.pack(pady=15)
+
+    logout_button = tk.Button(root, text="Logout", command=lambda: [root.destroy(), firstpage()], bg="#f44336", fg="white", width=22)
+    logout_button.pack(pady=15)
+    
+    root.mainloop()
+
+def student_home(username=None, password=None, role=None):
+    root = tk.Tk()
+    root.title("Welcome to Student Homepage")
+    root.geometry("400x300")
+    
+    test_button = tk.Button(root, text="Take A Test", command=lambda: [root.destroy(), Take_a_test(username)], bg="#4CAF50", fg="white", width=20)
+    test_button.pack(pady=15)
+
+    logout_button = tk.Button(root, text="Logout", command=lambda: [root.destroy(), firstpage()], bg="#f44336", fg="white", width=20)
+    logout_button.pack(pady=15)
+    
+    root.mainloop()
+
+# --- AUTHENTICATION ---
 
 def login():
     root = tk.Tk()
@@ -67,14 +70,17 @@ def login():
     role_menu = tk.OptionMenu(form_frame, role_var, "STUDENT", "TEACHER")
     role_menu.grid(row=2, column=1, sticky="w", pady=5)
 
-    # Pass the specific string values to the check_data function
-    submit_btn = tk.Button(root, text="Login", 
-                           command=lambda: check_data(username_entry.get(), password_entry.get(), role_var.get()), 
-                           bg="#4CAF50", fg="white")
+    submit_btn = tk.Button(
+        root, 
+        text="Login", 
+        command=lambda: check_data(root, username_entry.get(), password_entry.get(), role_var.get()), 
+        bg="#4CAF50", 
+        fg="white"
+    )
     submit_btn.pack(pady=15)
     root.mainloop()
 
-def check_data(username, password, role):
+def check_data(current_window, username, password, role):
     username = username.strip()
     
     if not username or not password:
@@ -87,15 +93,15 @@ def check_data(username, password, role):
         con = mys.connect(host='localhost', user='root', passwd='password', autocommit=True, database="project1") 
         cur = con.cursor()
         
-        # Fixed syntax and used parameterized query (%s) for safety
         q = "SELECT username, password, role FROM users WHERE username = %s"
         cur.execute(q, (username,))
-        result = cur.fetchone() # Fetchone is better when expecting a single user
+        result = cur.fetchone()
         
         if result:
             db_username, db_password, db_role = result
             if db_password == password and db_role == role:
                 print("Valid login")
+                current_window.destroy()
                 if role == "TEACHER":
                     teacher_home(username, password, role)
                 elif role == "STUDENT":
@@ -108,7 +114,6 @@ def check_data(username, password, role):
     except Exception as e:
         messagebox.showerror("Database Error", f"Failed to fetch data: {e}")
     finally:
-        # Fixed the variable names in the cleanup block
         if cur:
             cur.close()
         if con and con.is_connected():
@@ -140,13 +145,17 @@ def signup():
     role_menu = tk.OptionMenu(form_frame, role_var, "STUDENT", "TEACHER")
     role_menu.grid(row=3, column=1, sticky="w", pady=5)
 
-    submit_btn = tk.Button(root, text="Save to Database", 
-                           command=lambda: save_data(name_entry.get(), username_entry.get(), password_entry.get(), role_var.get()), 
-                           bg="#4CAF50", fg="white")
+    submit_btn = tk.Button(
+        root, 
+        text="Save to Database", 
+        command=lambda: save_data(root, name_entry.get(), username_entry.get(), password_entry.get(), role_var.get()), 
+        bg="#4CAF50", 
+        fg="white"
+    )
     submit_btn.pack(pady=15)
     root.mainloop()
 
-def save_data(name, username, password, role):
+def save_data(current_window, name, username, password, role):
     username = username.strip()
     name = name.strip()
 
@@ -160,11 +169,11 @@ def save_data(name, username, password, role):
         con = mys.connect(host='localhost', user='root', passwd='password', autocommit=True, database="project1") 
         cur = con.cursor()
         
-        # Parameterized query for secure insertion
         q = "INSERT INTO users (name, username, password, role) VALUES (%s, %s, %s, %s)"
         cur.execute(q, (name, username, password, role))
         
         messagebox.showinfo("Success", "User registered successfully!")
+        current_window.destroy()
         firstpage()
         
     except Exception as e:
@@ -174,69 +183,9 @@ def save_data(name, username, password, role):
             cur.close()
         if con and con.is_connected():
             con.close()
-##def Take_a_test():
-##    root = tk.Tk()
-##    root.title("Enter test id")
-##    root.geometry("400x300")
-##    
-##
-##
-##    tk.Label(form_frame, text="test id:").grid(row=0, column=0, sticky="e", pady=5)
-##    testid_entry = tk.Entry(form_frame, width=30)
-##    testid_entry.grid(row=0, column=1, pady=5)
-##
-##
-##    # Pass the specific string values to the check_data function
-##    submit_btn = tk.Button(root, text="submit", 
-##                           command=lambda: write_test(testid_entry.get()), 
-##                           bg="#4CAF50", fg="white")
-##    submit_btn.pack(pady=15)
-##    root.mainloop()
-##def write_test():
-##    root = tk.Tk()
-##    root.title("Enter test id")
-##    root.geometry("400x300")
-##    form_frame = tk.Frame(root)
-##    form_frame.pack(pady=10)
-##    
-##
-##    
-##
-##    tk.Label(form_frame, text="Option:").grid(row=3, column=0, sticky="e", pady=5)
-##    option_var = tk.StringVar(value="A")
-##    option_menu = tk.OptionMenu(form_frame, option_var, "A", "B","C","D")
-##    option_menu.grid(row=3, column=1, sticky="w", pady=5)
-##
-##
-##
-##
-##
-##    # Pass the specific string values to the check_data function
-##    submit_btn = tk.Button(root, text="submit",command=lambda: save_option(),bg="#4CAF50", fg="white")
-##    submit_btn.pack(pady=15)
-##    root.mainloop()
-def save_option():
-    con = None
-    cur = None
-    try:
-        con = mys.connect(host='localhost', user='root', passwd='password', autocommit=True, database="project1") 
-        cur = con.cursor()
-        
-        # Parameterized query for secure insertion
-        q = "INSERT INTO users (name, username, password, role) VALUES (%s, %s, %s, %s)"
-        cur.execute(q, (name, username, password, role))
-        
-        messagebox.showinfo("Success", "User registered successfully!")
-        firstpage()
-        
-    except Exception as e:
-        messagebox.showerror("Database Error", f"Failed to insert data: {e}")
-    finally:
-        if cur:
-            cur.close()
-        if con and con.is_connected():
-            con.close()
-#Take test functon
+
+# --- STUDENT TEST TAKING ---
+
 def Take_a_test(username=None):
     root = tk.Tk()
     root.title("Enter test id")
@@ -245,7 +194,7 @@ def Take_a_test(username=None):
     form_frame = tk.Frame(root)
     form_frame.pack(pady=10)
 
-    tk.Label(form_frame, text="test id:").grid(row=0, column=0, sticky="e", pady=5)
+    tk.Label(form_frame, text="Test ID:").grid(row=0, column=0, sticky="e", pady=5)
     testid_entry = tk.Entry(form_frame, width=30)
     testid_entry.grid(row=0, column=1, pady=5)
 
@@ -262,10 +211,9 @@ def Take_a_test(username=None):
         root.destroy()
         write_test(test_id_int, username)
 
-    submit_btn = tk.Button(root, text="submit", command=start_test, bg="#4CAF50", fg="white", width=15)
+    submit_btn = tk.Button(root, text="Submit", command=start_test, bg="#4CAF50", fg="white", width=15)
     submit_btn.pack(pady=15)
     root.mainloop()
-
 
 def write_test(test_id, username=None):
     con = None
@@ -287,6 +235,7 @@ def write_test(test_id, username=None):
 
         if not rows:
             messagebox.showinfo("No Questions", "No questions found for this test ID.")
+            student_home(username)
             return
 
         cur.execute(
@@ -380,6 +329,7 @@ def write_test(test_id, username=None):
                 "Test Completed",
                 f"Test finished!\nAttempt ID: {attempt_id}\nQuestions answered: {state['asked']}\nCorrect answers: {state['score']}",
             )
+            student_home(username)
             return
 
         asked_ids.add(q[0])
@@ -388,7 +338,7 @@ def write_test(test_id, username=None):
 
         root = tk.Tk()
         root.title(f"Test {test_id} - {diff}")
-        root.geometry("400x300")
+        root.geometry("420x320")
 
         form_frame = tk.Frame(root)
         form_frame.pack(pady=10, padx=10)
@@ -438,7 +388,7 @@ def write_test(test_id, username=None):
 
         tk.Button(
             root,
-            text="submit",
+            text="Submit",
             command=submit_answer,
             bg="#4CAF50",
             fg="white",
@@ -448,32 +398,35 @@ def write_test(test_id, username=None):
         root.mainloop()
 
     show_question_window()
-# Create new teat function
+
+# --- TEACHER TEST CREATION & REVIEW ---
+
 def create_new_test():
     root = tk.Tk()
-    root.title("Enter test id")
+    root.title("Create New Test")
     root.geometry("400x300")
 
     form_frame = tk.Frame(root)
     form_frame.pack(pady=10)
-    tk.Label(form_frame, text="test id:").grid(row=0, column=0, sticky="e", pady=5)
+    
+    tk.Label(form_frame, text="Test ID:").grid(row=0, column=0, sticky="e", pady=5)
     testid_entry = tk.Entry(form_frame, width=30)
     testid_entry.grid(row=0, column=1, pady=5)
 
-    tk.Label(form_frame, text="test Title:").grid(row=0, column=0, sticky="e", pady=5)
+    tk.Label(form_frame, text="Test Title:").grid(row=1, column=0, sticky="e", pady=5)
     testtitle_entry = tk.Entry(form_frame, width=30)
-    testtitle_entry.grid(row=0, column=1, pady=5)
+    testtitle_entry.grid(row=1, column=1, pady=5)
 
-    tk.Label(form_frame, text="test Description:").grid(row=0, column=0, sticky="e", pady=5)
+    tk.Label(form_frame, text="Test Description:").grid(row=2, column=0, sticky="e", pady=5)
     testdescription_entry = tk.Entry(form_frame, width=30)
-    testdescription_entry.grid(row=0, column=1, pady=5)
+    testdescription_entry.grid(row=2, column=1, pady=5)
 
     def checkdata_testid():
         tid = testid_entry.get().strip()
-        t_title= testtitle_entry.get().strip()
-        t_description= testdescription_entry.get().strip()
-        if not tid:
-            messagebox.showwarning("Missing Data", "Please enter a test id.")
+        t_title = testtitle_entry.get().strip()
+        t_description = testdescription_entry.get().strip()
+        if not tid or not t_title:
+            messagebox.showwarning("Missing Data", "Please enter a test ID and title.")
             return
         try:
             test_id_int = int(tid)
@@ -481,32 +434,37 @@ def create_new_test():
             messagebox.showwarning("Invalid Input", "Test ID must be a number.")
             return
         root.destroy()
-        save_testid(test_id_int,t_title,t_description)
+        save_testid(test_id_int, t_title, t_description)
 
-    submit_btn = tk.Button(root, text="submit", command=checkdata_testid, bg="#4CAF50", fg="white", width=15)
+    submit_btn = tk.Button(root, text="Submit", command=checkdata_testid, bg="#4CAF50", fg="white", width=15)
     submit_btn.pack(pady=15)
     root.mainloop()
 
-
-def save_testid(test_id,test_title,test_description):
+def save_testid(test_id, test_title, test_description):
     con = None
     cur = None
-    attempt_id = None
     try:
         con = mys.connect(host="localhost", user="root", passwd="password", autocommit=True, database="project1")
         cur = con.cursor()
 
         cur.execute(
-            """INSERT INTO tests (test_id,TITLE,DESCRIPTION) VALUES (%s, %s, %s)       
-            """,
-            (test_id,test_title,test_description),
+            """INSERT INTO tests (test_id, TITLE, DESCRIPTION) VALUES (%s, %s, %s)""",
+            (test_id, test_title, test_description),
         )
         add_questions(test_id)
-        
+    except Exception as e:
+        messagebox.showerror("Database Error", f"Failed to save test: {e}")
+        create_new_test()
+    finally:
+        if cur:
+            cur.close()
+        if con and con.is_connected():
+            con.close()
+
 def add_questions(test_id):
     root = tk.Tk()
     root.title(f"Add Questions - Test {test_id}")
-    root.geometry("400x300")
+    root.geometry("400x320")
 
     form_frame = tk.Frame(root)
     form_frame.pack(pady=5)
@@ -611,189 +569,40 @@ def add_questions(test_id):
     ).grid(row=0, column=1, padx=5)
 
     root.mainloop()
-        
-    
-##        if not rows:
-##            messagebox.showinfo("", "No questions found for this test ID.")
-##            return
-##
-##        cur.execute(
-##            """
-##            INSERT INTO TEST_ATTEMPTS (username, test_id, score)
-##            VALUES (%s, %s, %s)
-##            """,
-##            (username, test_id, 0),
-##        )
-##        attempt_id = cur.lastrowid
 
+def review_student():
+    root = tk.Tk()
+    root.title("Student Performance")
+    root.geometry("450x350")
+    
+    tk.Label(root, text="Student Test Attempts", font=("Arial", 14, "bold")).pack(pady=10)
+    
+    listbox = tk.Listbox(root, width=55, height=12)
+    listbox.pack(pady=10, padx=10)
+    
+    con = None
+    cur = None
+    try:
+        con = mys.connect(host="localhost", user="root", passwd="password", autocommit=True, database="project1")
+        cur = con.cursor()
+        cur.execute("SELECT username, test_id, score, attempted_at FROM TEST_ATTEMPTS ORDER BY attempted_at DESC")
+        records = cur.fetchall()
+        
+        if not records:
+            listbox.insert(tk.END, "No test attempts recorded yet.")
+        else:
+            for username, test_id, score, attempted_at in records:
+                listbox.insert(tk.END, f"Student: {username} | Test ID: {test_id} | Score: {score} | {attempted_at}")
     except Exception as e:
-        messagebox.showerror("Database Error", f"Failed to start test: {e}")
-        return
+        messagebox.showerror("Database Error", f"Could not load scores: {e}")
     finally:
         if cur:
             cur.close()
         if con and con.is_connected():
             con.close()
 
+    tk.Button(root, text="Back", command=lambda: [root.destroy(), teacher_home()], bg="#4CAF50", fg="white", width=15).pack(pady=10)
+    root.mainloop()
+
 if __name__ == "__main__":
     firstpage()
-    
-
-
-
-
-
-    #shfjfks dkjg
-
-##import tkinter as tk
-##from tkinter import messagebox
-##import CONN
-##import mysql.connector as mys
-##def firstpage():
-##    root = tk.Tk()
-##    root.title("Data Capture GUI")
-##    root.geometry("400x300")
-##        # Submit Button
-##    login_button = tk.Button(root, text="login", command=login, bg="#4CAF50", fg="white")
-##    login_button.pack(pady=15)
-##    signup_button = tk.Button(root, text="signup", command=signup, bg="#4CAF50", fg="white")
-##    signup_button.pack(pady=15)
-### --- GUI Setup ---
-##def login():
-##    root = tk.Tk()
-##    root.title("Data Capture GUI")
-##    root.geometry("400x300")
-##    
-##    tk.Label(root, text="User Login", font=("Arial", 14, "bold")).pack(pady=10)
-##
-##    form_frame = tk.Frame(root)
-##    form_frame.pack(pady=10)
-##
-##    # Textfields
-##    tk.Label(form_frame, text="Name:").grid(row=0, column=0, sticky="e", pady=5)
-##    name_entry = tk.Entry(form_frame, width=30)
-##    name_entry.grid(row=0, column=1, pady=5)
-##
-##    tk.Label(form_frame, text="Username:").grid(row=1, column=0, sticky="e", pady=5)
-##    username_entry = tk.Entry(form_frame, width=30)
-##    username_entry.grid(row=1, column=1, pady=5)
-##
-##    tk.Label(form_frame, text="Password:").grid(row=2, column=0, sticky="e", pady=5)
-##    password_entry = tk.Entry(form_frame, width=30, show="*")
-##    password_entry.grid(row=2, column=1, pady=5)
-##
-##    # Role Selector
-##    tk.Label(form_frame, text="Role:").grid(row=3, column=0, sticky="e", pady=5)
-##    role_var = tk.StringVar(value="STUDENT")
-##    role_menu = tk.OptionMenu(form_frame, role_var, "STUDENT", "TEACHER")
-##    role_menu.grid(row=3, column=1, sticky="w", pady=5)
-##
-##    # Submit Button
-##    submit_btn = tk.Button(root, text="Login", command=check_data, bg="#4CAF50", fg="white")
-##    submit_btn.pack(pady=15)
-##
-##    root.mainloop()
-##def check_data():
-##        # 1. Capture info from textfields
-##    username = username_entry.get().strip()
-##    password = password_entry.get()
-##    name = name_entry.get().strip()
-##    role = role_var.get()
-##
-##    # Basic validation
-##    if not username or not password or not name:
-##        messagebox.showwarning("Missing Data", "Please fill out all textfields.")
-##        return
-##
-##    # 2. Connect to MySQL and insert efficiently
-##    try:
-##        # Assuming your CONN file has a function like get_connection()
-##        con =mys.connect(host='localhost',user='root',passwd='root',autocommit=True,database="project1") 
-##        cur = con.cursor()
-##        q="select username password from users where username='{}';"
-##        cur.execute(q.format(username))
-##        t=cur.fetchall()
-##        v= t[0]
-##        if v[0]==str(username) and v[1]==str(password):
-##            print("Valid login")
-##            if role=="TEACHER":
-##                teacher_home()
-##            elif role=="STUDENT":
-##                student_home()
-##        else:
-##            print("invalid login details")     
-##        
-##
-##            
-##    except Exception as e:
-##        messagebox.showerror("Database Error", f"Failed to insert data: {e}")
-##    finally:
-##        if 'connection' in locals() and connection.is_connected():
-##            cursor.close()
-##            connection.close()
-##    
-##    
-##def signup():
-##    root = tk.Tk()
-##    root.title("Data Capture GUI")
-##    root.geometry("400x300")
-##
-##    tk.Label(root, text="User Registration Form", font=("Arial", 14, "bold")).pack(pady=10)
-##
-##    form_frame = tk.Frame(root)
-##    form_frame.pack(pady=10)
-##
-##    # Textfields
-##    tk.Label(form_frame, text="Name:").grid(row=0, column=0, sticky="e", pady=5)
-##    name_entry = tk.Entry(form_frame, width=30)
-##    name_entry.grid(row=0, column=1, pady=5)
-##
-##    tk.Label(form_frame, text="Username:").grid(row=1, column=0, sticky="e", pady=5)
-##    username_entry = tk.Entry(form_frame, width=30)
-##    username_entry.grid(row=1, column=1, pady=5)
-##
-##    tk.Label(form_frame, text="Password:").grid(row=2, column=0, sticky="e", pady=5)
-##    password_entry = tk.Entry(form_frame, width=30, show="*")
-##    password_entry.grid(row=2, column=1, pady=5)
-##
-##    # Role Selector
-##    tk.Label(form_frame, text="Role:").grid(row=3, column=0, sticky="e", pady=5)
-##    role_var = tk.StringVar(value="STUDENT")
-##    role_menu = tk.OptionMenu(form_frame, role_var, "STUDENT", "TEACHER")
-##    role_menu.grid(row=3, column=1, sticky="w", pady=5)
-##
-##    # Submit Button
-##    submit_btn = tk.Button(root, text="Save to Database", command=save_data, bg="#4CAF50", fg="white")
-##    submit_btn.pack(pady=15)
-##
-##    root.mainloop()
-##def save_data():
-##    # 1. Capture info from textfields
-##    username = username_entry.get().strip()
-##    password = password_entry.get()
-##    name = name_entry.get().strip()
-##    role = role_var.get()
-##
-##    # Basic validation
-##    if not username or not password or not name:
-##        messagebox.showwarning("Missing Data", "Please fill out all textfields.")
-##        return
-##
-##    # 2. Connect to MySQL and insert efficiently
-##    try:
-##        # Assuming your CONN file has a function like get_connection()
-##        con =mys.connect(host='localhost',user='root',passwd='root',autocommit=True,database="project1") 
-##        cur = con.cursor()
-##        q= "insert into users(name, username, password, role)  values('{}','{}','{}','{}')"
-##        cur.execute(q.format(name,username,password,role))
-## 
-##
-##            
-##    except Exception as e:
-##        messagebox.showerror("Database Error", f"Failed to insert data: {e}")
-##    finally:
-##        if 'connection' in locals() and connection.is_connected():
-##            cursor.close()
-##            connection.close()
-##firstpage()
-##
