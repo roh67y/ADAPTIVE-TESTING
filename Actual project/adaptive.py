@@ -483,7 +483,7 @@ def create_new_test():
         root.destroy()
         save_testid(test_id_int,t_title,t_description)
 
-    submit_btn = tk.Button(root, text="submit", command=checkdata_testid(), bg="#4CAF50", fg="white", width=15)
+    submit_btn = tk.Button(root, text="submit", command=checkdata_testid, bg="#4CAF50", fg="white", width=15)
     submit_btn.pack(pady=15)
     root.mainloop()
 
