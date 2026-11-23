@@ -450,7 +450,7 @@ def write_test(test_id, username=None):
     show_question_window()
 # Create new teat function
 def create_new_test():
-        root = tk.Tk()
+    root = tk.Tk()
     root.title("Enter test id")
     root.geometry("400x300")
 
@@ -505,7 +505,11 @@ def save_testid(test_id,test_title,test_description):
 def add_questions(test_id):
     y=yes
     while y=="yes":
-        q
+        q = input("Enter a question : ")
+        a = input("Enter option A: ")
+        b= input("Enter option B: ")
+        c= input("Enter option C: ")
+        d = input("Enter option D: ")
     
 ##        if not rows:
 ##            messagebox.showinfo("", "No questions found for this test ID.")
