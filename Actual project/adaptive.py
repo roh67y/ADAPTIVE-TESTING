@@ -481,9 +481,9 @@ def create_new_test():
             messagebox.showwarning("Invalid Input", "Test ID must be a number.")
             return
         root.destroy()
-        save_testid(test_id_int,,t_title,t_description)
+        save_testid(test_id_int,t_title,t_description)
 
-    submit_btn = tk.Button(root, text="submit", command=checkdata_test(), bg="#4CAF50", fg="white", width=15)
+    submit_btn = tk.Button(root, text="submit", command=checkdata_testid(), bg="#4CAF50", fg="white", width=15)
     submit_btn.pack(pady=15)
     root.mainloop()
 
@@ -502,11 +502,7 @@ def save_testid(test_id,test_title,test_description):
             (test_id,test_title,test_description),
         )
         add_questions(test_id)
-import tkinter as tk
-from tkinter import messagebox
-import mysql.connector as mys
-
-
+        
 def add_questions(test_id):
     root = tk.Tk()
     root.title(f"Add Questions - Test {test_id}")
