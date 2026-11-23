@@ -511,11 +511,13 @@ def add_questions(test_id):
         c= input("Enter option C: ")
         d = input("Enter option D: ")
         correct= input("Enter correct option: ")
+        difficulty=input("Enter difficulty[easy,medium,hard]")
         cur.execute(
-            """INSERT INTO questions (test_id,TITLE,DESCRIPTION) VALUES (%s, %s, %s)       
+            """INSERT INTO questions (test_id,question_text,option_a,option_b,option_c,option_d,correct_option,difficulty) VALUES (%s, %s, %s)       
             """,
-            (test_id,test_title,test_description),
+            (test_id,q,a,b,c,d,correct,difficulty),
         )
+        
     
 ##        if not rows:
 ##            messagebox.showinfo("", "No questions found for this test ID.")
